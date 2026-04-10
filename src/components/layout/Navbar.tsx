@@ -1,33 +1,36 @@
+"use client"
+
 import Link from "next/link"
+import { useCart } from "@/hooks/useCart"
 
 export default function Navbar() {
+
+    const { totalItems } = useCart()
+
     return (
-        <nav className="border-b">
 
-            <div className="max-w-6xl mx-auto flex justify-between items-center p-4">
+        <nav className="flex justify-between p-4 border-b">
 
-                <Link href="/" className="font-bold text-xl">
-                    MyStore
+            <Link href="/">
+                Shop
+            </Link>
+
+            <div className="flex gap-4">
+
+                <Link href="/products">
+                    Products
                 </Link>
 
-                <div className="flex gap-6">
+                <Link href="/cart">
 
-                    <Link href="/products">
-                        Products
-                    </Link>
+                    Cart 🛒 ({totalItems})
 
-                    <Link href="/cart">
-                        Cart
-                    </Link>
-
-                    <Link href="/admin/dashboard">
-                        Admin
-                    </Link>
-
-                </div>
+                </Link>
 
             </div>
 
         </nav>
+
     )
+
 }

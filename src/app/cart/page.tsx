@@ -1,9 +1,13 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
+
 import {
     getCart,
     removeFromCart,
+    increaseQty,
+    decreaseQty,
     CartItem
 } from "@/lib/cart"
 
@@ -11,9 +15,17 @@ export default function CartPage() {
 
     const [cart, setCart] = useState<CartItem[]>([])
 
-    useEffect(() => {
+    const router = useRouter()
+
+    function loadCart() {
 
         setCart(getCart())
+
+    }
+
+    useEffect(() => {
+
+        loadCart()
 
     }, [])
 
@@ -21,19 +33,61 @@ export default function CartPage() {
 
         removeFromCart(id)
 
-        setCart(getCart())
+        loadCart()
+
+    }
+
+    function handleIncrease(id: string) {
+
+        increaseQty(id)
+
+        loadCart()
+
+    }
+
+    function handleDecrease(id: string) {
+
+        decreaseQty(id)
+
+        loadCart()
 
     }
 
     if (!cart.length) {
-        return <p>Your cart is empty</p>
+
+        return (
+
+            <div className="p-6">
+
+                <h1 className="text-2xl font-bold">
+                    Cart
+                </h1>
+
+                <p className="mt-4">
+                    Your cart is empty
+                </p>
+
+            </div>
+
+        )
+
     }
+
+    const total = cart.reduce(
+
+        (sum, item) =>
+
+            sum + item.price * item.quantity,
+
+        0
+
+    )
 
     return (
 
-        <div>
+        <div className="p-6">
 
-            <h1 className="text-2xl font-bold mb-4">
+            <h1 className="text-2xl font-bold mb-6">
                 Cart
             </h1>
 
@@ -43,22 +97,40 @@ export default function CartPage() {
 
                     <div
                         key={item.id}
-                        className="border p-4 flex justify-between"
+                        className="border rounded-xl p-4 flex justify-between items-center"
                     >
 
                         <div>
 
-                            <h3>
+                            <h3 className="font-semibold">
                                 {item.name}
                             </h3>
 
-                            <p>
+                            <p className="text-gray-600">
                                 ${item.price}
                             </p>
 
-                            <p>
-                                Qty: {item.quantity}
-                            </p>
+                            <div className="flex items-center gap-2 mt-2">
+
+                                <button
+                                    onClick={() => handleDecrease(item.id)}
+                                    className="px-3 py-1 border rounded"
+                                >
+                                    -
+                                </button>
+
+                                <span>
+                                    {item.quantity}
+                                </span>
+
+                                <button
+                                    onClick={() => handleIncrease(item.id)}
+                                    className="px-3 py-1 border rounded"
+                                >
+                                    +
+                                </button>
+
+                            </div>
 
                         </div>
 
@@ -72,6 +144,25 @@ export default function CartPage() {
                     </div>
 
                 ))}
+
+            </div>
+
+            <div className="mt-8">
+
+                <h2 className="text-xl font-semibold">
+
+                    Total: ${total}
+
+                </h2>
+
+                <button
+                    onClick={() => router.push("/checkout")}
+                    className="mt-4 bg-black text-white px-6 py-2 rounded-lg"
+                >
+
+                    Checkout
+
+                </button>
 
             </div>
 

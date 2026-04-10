@@ -38,6 +38,7 @@ export function addToCart(product: Omit<CartItem, "quantity">) {
     })
 
   }
+  
 
   localStorage.setItem(
     CART_KEY,
@@ -51,6 +52,52 @@ export function removeFromCart(id: string) {
   const cart = getCart().filter(
     item => item.id !== id
   )
+
+  localStorage.setItem(
+    CART_KEY,
+    JSON.stringify(cart)
+  )
+
+}
+
+export function increaseQty(id: string) {
+
+  const cart = getCart()
+
+  const item = cart.find(
+    i => i.id === id
+  )
+
+  if (item) {
+    item.quantity++
+  }
+
+  localStorage.setItem(
+    CART_KEY,
+    JSON.stringify(cart)
+  )
+
+}
+
+export function decreaseQty(id: string) {
+
+  let cart = getCart()
+
+  const item = cart.find(
+    i => i.id === id
+  )
+
+  if (!item) return
+
+  item.quantity--
+
+  if (item.quantity <= 0) {
+
+    cart = cart.filter(
+      i => i.id !== id
+    )
+
+  }
 
   localStorage.setItem(
     CART_KEY,
