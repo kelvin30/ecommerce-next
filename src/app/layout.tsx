@@ -1,5 +1,6 @@
 import "./globals.css"
-import Navbar from "../components/layout/Navbar"
+import Navbar from "@/components/layout/Navbar"
+import InitProducts from "@/components/InitProducts"
 
 export const metadata = {
   title: "Ecommerce",
@@ -7,21 +8,27 @@ export const metadata = {
 }
 
 export default function RootLayout({
-  children,
+  children
 }: {
   children: React.ReactNode
 }) {
+
   return (
+
     <html lang="en">
+
       <body>
+
+        <InitProducts /> {/* 👈 kjo është zgjidhja */}
 
         <Navbar />
 
-        <main className="max-w-6xl mx-auto p-4">
-          {children}
-        </main>
+        {children}
 
       </body>
+
     </html>
+
   )
+
 }

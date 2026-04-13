@@ -1,3 +1,5 @@
+// src/lib/auth.ts
+
 const USER_KEY = "user"
 
 export function loginFake() {
@@ -5,8 +7,8 @@ export function loginFake() {
   localStorage.setItem(
     USER_KEY,
     JSON.stringify({
-      role: "USER",
-      email: "test@test.com"
+      role: "ADMIN",
+      email: "admin@test.com"
     })
   )
 
@@ -23,11 +25,8 @@ export function getUser() {
   if (typeof window === "undefined")
     return null
 
-  const user =
-    localStorage.getItem(USER_KEY)
+  const user = localStorage.getItem(USER_KEY)
 
-  return user
-    ? JSON.parse(user)
-    : null
+  return user ? JSON.parse(user) : null
 
 }
