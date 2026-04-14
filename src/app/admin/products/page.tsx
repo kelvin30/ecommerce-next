@@ -14,8 +14,8 @@ import { getUser } from "@/lib/auth"
 
 export default function AdminProductsPage() {
 
-    const [products, setProducts] =
-        useState<Product[]>([])
+    const [products, setProducts] = useState<Product[]>([])
+    const [deleteId, setDeleteId] = useState<string | null>(null)
 
     const router = useRouter()
 
@@ -27,9 +27,7 @@ export default function AdminProductsPage() {
         if (!user || user.role !== "ADMIN") {
 
             alert("Not authorized")
-
             router.push("/")
-
             return
         }
 
@@ -38,21 +36,15 @@ export default function AdminProductsPage() {
     }, [])
 
     function loadProducts() {
-
         setProducts(getProducts())
-
     }
 
-    function handleDelete(id: string) {
+    function handleDeleteConfirm() {
 
-        const confirmed = window.confirm(
-            "Are you sure you want to delete this product?"
-        )
+        if (!deleteId) return
 
-        if (!confirmed) return
-
-        deleteProduct(id)
-
+        deleteProduct(deleteId)
+        setDeleteId(null)
         loadProducts()
 
     }
@@ -65,10 +57,9 @@ export default function AdminProductsPage() {
                 Admin Products
             </h1>
 
-            {/* ➕ Create Product */}
             <Link
                 href="/admin/products/create"
-                className="inline-block mb-6 bg-black text-white px-4 py-2 rounded"
+                className="inline-block mb-6 bg-black text-white px-4 py-2 rounded hover:bg-gray-800 transition"
             >
                 + Create Product
             </Link>
@@ -83,7 +74,6 @@ export default function AdminProductsPage() {
                     >
 
                         <div>
-
                             <h3 className="font-semibold">
                                 {product.name}
                             </h3>
@@ -91,7 +81,6 @@ export default function AdminProductsPage() {
                             <p className="text-gray-600">
                                 ${product.price}
                             </p>
-
                         </div>
 
                         <div className="flex gap-3">
@@ -108,7 +97,7 @@ export default function AdminProductsPage() {
 
                             {/* ❌ Delete */}
                             <button
-                                onClick={() => handleDelete(product.id)}
+                                onClick={() => setDeleteId(product.id)}
                                 className="text-red-500"
                             >
                                 Delete
@@ -121,6 +110,41 @@ export default function AdminProductsPage() {
                 ))}
 
             </div>
+
+            {/* 🔥 MODAL */}
+            {deleteId && (
+
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+
+                    <div className="bg-white p-6 rounded shadow">
+
+                        <h2 className="text-lg font-bold mb-4">
+                            Are you sure you want to delete this product?
+                        </h2>
+
+                        <div className="flex gap-4">
+
+                            <button
+                                onClick={() => setDeleteId(null)}
+                                className="px-4 py-2 border rounded"
+                            >
+                                Cancel
+                            </button>
+
+                            <button
+                                onClick={handleDeleteConfirm}
+                                className="bg-red-500 text-white px-4 py-2 rounded"
+                            >
+                                Delete
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            )}
 
         </div>
 
