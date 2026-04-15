@@ -2,7 +2,15 @@
 
 import { useParams, useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
-import { getProducts, saveProducts, Product } from "@/lib/products"
+import { getProducts } from "@/lib/products"
+import { updateProduct } from "@/lib/products"
+
+type Product = {
+    id: string
+    name: string
+    price: number
+    image: string
+}
 
 export default function EditProductPage() {
 
@@ -11,38 +19,63 @@ export default function EditProductPage() {
 
     const [product, setProduct] = useState<Product | null>(null)
     const [error, setError] = useState("")
+    const [loading, setLoading] = useState(true)
 
+    // 📥 LOAD PRODUCT FROM API
     useEffect(() => {
 
-        const found = getProducts().find(
-            p => p.id === params.id
-        )
+        async function loadProduct() {
 
-        if (found) setProduct(found)
+            try {
+                const products = await getProducts()
+
+                const found = products.find(
+                    (p: Product) => p.id === params.id
+                )
+
+                if (found) {
+                    setProduct(found)
+                }
+
+            } catch (err) {
+                console.error(err)
+            } finally {
+                setLoading(false)
+            }
+
+        }
+
+        loadProduct()
 
     }, [])
 
-    function handleSave() {
+    // 💾 SAVE 
+    async function handleSave() {
 
         if (!product) return
 
         if (!product.name.trim()) {
-            setError("Name required")
+            setError("Product name is required")
             return
         }
 
         if (product.price <= 0) {
-            setError("Invalid price")
+            setError("Price must be greater than 0")
             return
         }
 
-        const updated = getProducts().map(p =>
-            p.id === product.id ? product : p
-        )
+        try {
 
-        saveProducts(updated)
+            await updateProduct(product)
 
-        router.push("/admin/products")
+            alert("Product updated successfully")
+
+            router.push("/admin/products")
+
+        } catch (err) {
+            console.error(err)
+            setError("Update failed")
+        }
 
     }
 
@@ -64,7 +97,13 @@ export default function EditProductPage() {
         reader.readAsDataURL(file)
     }
 
-    if (!product) return <p className="p-6">Loading...</p>
+    if (loading) {
+        return <p className="p-6">Loading...</p>
+    }
+
+    if (!product) {
+        return <p className="p-6">Product not found</p>
+    }
 
     return (
 
@@ -81,7 +120,7 @@ export default function EditProductPage() {
                 )}
 
                 <input
-                    className="w-full border p-3 rounded-lg mb-3 focus:ring-2 focus:ring-black outline-none"
+                    className="w-full border p-3 rounded-lg mb-3"
                     value={product.name}
                     onChange={e =>
                         setProduct({ ...product, name: e.target.value })
@@ -89,17 +128,21 @@ export default function EditProductPage() {
                 />
 
                 <input
-                    className="w-full border p-3 rounded-lg mb-3 focus:ring-2 focus:ring-black outline-none"
+                    className="w-full border p-3 rounded-lg mb-3"
                     value={product.price}
                     onChange={e =>
-                        setProduct({ ...product, price: Number(e.target.value) })
+                        setProduct({
+                            ...product,
+                            price: Number(e.target.value)
+                        })
                     }
                 />
 
+                {/* 📸 CUSTOM BUTTON */}
                 <label className="inline-block cursor-pointer mb-3">
 
-                    <span className="flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-lg border hover:bg-gray-200">
-                        📁 Choose Image
+                    <span className="bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-lg border transition">
+                        Change Image
                     </span>
 
                     <input
@@ -119,7 +162,7 @@ export default function EditProductPage() {
 
                 <button
                     onClick={handleSave}
-                    className="w-full bg-black text-white py-3 rounded-lg hover:bg-gray-800"
+                    className="w-full bg-black text-white py-3 rounded-lg"
                 >
                     Save Changes
                 </button>

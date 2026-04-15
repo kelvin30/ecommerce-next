@@ -1,54 +1,33 @@
-export type Product = {
-  id: string
-  name: string
-  price: number
-  image: string
-}
+export async function getProducts() {
 
-const PRODUCTS_KEY = "products"
-
-export function getProducts(): Product[] {
-
-  if (typeof window === "undefined")
-    return []
-
-  const data =
-    localStorage.getItem(PRODUCTS_KEY)
-
-  if (data) {
-    return JSON.parse(data)
-  }
-
-  return []
+  const res = await fetch("/api/products")
+  return res.json()
 
 }
 
-export function saveProducts(products: Product[]) {
+export async function addProduct(product: any) {
 
-  localStorage.setItem(
-    PRODUCTS_KEY,
-    JSON.stringify(products)
-  )
-
-}
-
-export function addProduct(product: Product) {
-
-  const products = getProducts()
-
-  products.push(product)
-
-  saveProducts(products)
+  await fetch("/api/products", {
+    method: "POST",
+    body: JSON.stringify(product)
+  })
 
 }
 
-export function deleteProduct(id: string) {
+export async function updateProduct(product: any) {
 
-  const products =
-    getProducts().filter(
-      p => p.id !== id
-    )
+  await fetch("/api/products", {
+    method: "PUT",
+    body: JSON.stringify(product)
+  })
 
-  saveProducts(products)
+}
+
+export async function deleteProduct(id: string) {
+
+  await fetch("/api/products", {
+    method: "DELETE",
+    body: JSON.stringify({ id })
+  })
 
 }
