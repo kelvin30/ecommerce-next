@@ -1,52 +1,51 @@
-let products = [
-  {
-    id: "1",
-    name: "Product 1",
-    price: 100,
-    image: ""
-  }
-]
+import { prisma } from "@/lib/prisma"
 
-// GET ALL PRODUCTS
+// GET ALL
 export async function GET() {
+  const products = await prisma.product.findMany()
   return Response.json(products)
 }
 
-// CREATE PRODUCT
+// CREATE
 export async function POST(req: Request) {
-
   const body = await req.json()
 
-  const newProduct = {
-    id: Date.now().toString(),
-    ...body
-  }
+  const product = await prisma.product.create({
+    data: {
+      name: body.name,
+      price: body.price,
+      image: body.image,
+      description: body.description
+    }
+  })
 
-  products.push(newProduct)
-
-  return Response.json(newProduct)
+  return Response.json(product)
 }
 
-// UPDATE PRODUCT
+// UPDATE
 export async function PUT(req: Request) {
+  const body = await req.json()
 
-  const updatedProduct = await req.json()
+  const product = await prisma.product.update({
+    where: { id: body.id },
+    data: {
+      name: body.name,
+      price: body.price,
+      image: body.image,
+      description: body.description
+    }
+  })
 
-  products = products.map(p =>
-    p.id === updatedProduct.id ? updatedProduct : p
-  )
-
-  return Response.json(updatedProduct)
-
+  return Response.json(product)
 }
 
-// DELETE PRODUCT
+// DELETE
 export async function DELETE(req: Request) {
-
   const { id } = await req.json()
 
-  products = products.filter(p => p.id !== id)
+  await prisma.product.delete({
+    where: { id }
+  })
 
   return Response.json({ success: true })
-
 }

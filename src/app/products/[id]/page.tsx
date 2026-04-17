@@ -1,65 +1,78 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
-import { products } from "@/lib/mockProducts"
 import { addToCart } from "@/lib/cart"
 
+type Product = {
+    id: string
+    name: string
+    price: number
+    image?: string
+    description?: string
+}
+
 export default function ProductDetails() {
-
     const params = useParams()
+    const [product, setProduct] = useState<Product | null>(null)
 
-    const product = products.find(
-        p => p.id === params.id
-    )
+    useEffect(() => {
+        fetchProduct()
+    }, [])
 
-    if (!product) {
-        return <div>Product not found</div>
+    async function fetchProduct() {
+        try {
+            const res = await fetch("/api/products")
+            const data = await res.json()
+
+            const found = data.find((p: Product) => p.id === params.id)
+
+            setProduct(found || null)
+        } catch (err) {
+            console.error(err)
+        }
     }
 
-    function handleAddToCart() {
-
-        if (!product) {
-            alert("Product not found")
-            return
-        }
-
-        addToCart(product)
-
-        alert("Added to cart")
-
+    if (!product) {
+        return <p className="p-6">Product not found</p>
     }
 
     return (
+        <div className="max-w-4xl mx-auto p-6">
 
-        <div className="grid md:grid-cols-2 gap-8">
+            {product.image && (
+                <img
+                    src={product.image}
+                    className="w-full h-80 object-cover rounded mb-6"
+                />
+            )}
 
-            <img
-                src={product.image}
-                className="rounded-xl"
-                alt={product.name}
-            />
+            <h1 className="text-2xl font-bold mb-2">
+                {product.name}
+            </h1>
 
-            <div>
+            <p className="text-gray-500 mb-4">
+                ${product.price}
+            </p>
 
-                <h1 className="text-3xl font-bold">
-                    {product.name}
-                </h1>
+            <p className="mb-6">
+                {product.description}
+            </p>
 
-                <p className="text-xl mt-2">
-                    ${product.price}
-                </p>
-
-                <button
-                    onClick={handleAddToCart}
-                    className="mt-4 bg-black text-white px-6 py-2 rounded-lg"
-                >
-                    Add to cart
-                </button>
-
-            </div>
+            <button
+                onClick={() =>
+                    addToCart({
+                        id: product.id,
+                        name: product.name,
+                        price: product.price,
+                        image: product.image || ""
+                    })
+                }
+                className="bg-black text-white px-6 py-3 rounded hover:bg-gray-800"
+            >
+                Add to Cart
+            </button>
 
         </div>
-
     )
-
 }

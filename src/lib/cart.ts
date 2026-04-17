@@ -6,102 +6,70 @@ export type CartItem = {
   quantity: number
 }
 
-const CART_KEY = "cart"
-
+// GET CART
 export function getCart(): CartItem[] {
-
   if (typeof window === "undefined") return []
-
-  const cart = localStorage.getItem(CART_KEY)
-
-  return cart ? JSON.parse(cart) : []
-
+  return JSON.parse(localStorage.getItem("cart") || "[]")
 }
 
-export function addToCart(product: Omit<CartItem, "quantity">) {
+// SAVE CART
+function saveCart(cart: CartItem[]) {
+  localStorage.setItem("cart", JSON.stringify(cart))
+}
 
+// ADD TO CART
+export function addToCart(product: Omit<CartItem, "quantity">) {
   const cart = getCart()
 
-  const existing = cart.find(
-    item => item.id === product.id
-  )
+  const existing = cart.find((item) => item.id === product.id)
 
   if (existing) {
-
-    existing.quantity++
-
+    existing.quantity += 1
   } else {
-
-    cart.push({
-      ...product,
-      quantity: 1
-    })
-
+    cart.push({ ...product, quantity: 1 })
   }
-  
 
-  localStorage.setItem(
-    CART_KEY,
-    JSON.stringify(cart)
-  )
-
+  saveCart(cart)
 }
 
+// REMOVE ITEM COMPLETELY
 export function removeFromCart(id: string) {
-
-  const cart = getCart().filter(
-    item => item.id !== id
-  )
-
-  localStorage.setItem(
-    CART_KEY,
-    JSON.stringify(cart)
-  )
-
+  const cart = getCart().filter((item) => item.id !== id)
+  saveCart(cart)
 }
 
+// INCREASE QUANTITY
 export function increaseQty(id: string) {
-
   const cart = getCart()
 
-  const item = cart.find(
-    i => i.id === id
-  )
+  const item = cart.find((i) => i.id === id)
+  if (item) item.quantity += 1
 
-  if (item) {
-    item.quantity++
-  }
-
-  localStorage.setItem(
-    CART_KEY,
-    JSON.stringify(cart)
-  )
-
+  saveCart(cart)
 }
 
+// DECREASE QUANTITY
 export function decreaseQty(id: string) {
-
   let cart = getCart()
 
-  const item = cart.find(
-    i => i.id === id
-  )
+  const item = cart.find((i) => i.id === id)
 
-  if (!item) return
+  if (item) {
+    item.quantity -= 1
 
-  item.quantity--
-
-  if (item.quantity <= 0) {
-
-    cart = cart.filter(
-      i => i.id !== id
-    )
-
+    // nëse bëhet 0 → fshi
+    if (item.quantity <= 0) {
+      cart = cart.filter((i) => i.id !== id)
+    }
   }
 
-  localStorage.setItem(
-    CART_KEY,
-    JSON.stringify(cart)
-  )
+  saveCart(cart)
+}
 
+// TOTAL
+export function getTotal(cart: CartItem[]) {
+  return cart.reduce(
+    (sum, item) => sum + item.price * item.quantity,
+    0
+  )
 }

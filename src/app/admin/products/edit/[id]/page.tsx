@@ -1,176 +1,92 @@
 "use client"
 
-import { useParams, useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
-import { getProducts } from "@/lib/products"
-import { updateProduct } from "@/lib/products"
-
-type Product = {
-    id: string
-    name: string
-    price: number
-    image: string
-}
+import { useParams, useRouter } from "next/navigation"
+import { getProducts, updateProduct } from "@/lib/products"
 
 export default function EditProductPage() {
-
     const params = useParams()
     const router = useRouter()
 
-    const [product, setProduct] = useState<Product | null>(null)
-    const [error, setError] = useState("")
-    const [loading, setLoading] = useState(true)
+    const [product, setProduct] = useState<any>(null)
 
-    // 📥 LOAD PRODUCT FROM API
     useEffect(() => {
-
-        async function loadProduct() {
-
-            try {
-                const products = await getProducts()
-
-                const found = products.find(
-                    (p: Product) => p.id === params.id
-                )
-
-                if (found) {
-                    setProduct(found)
-                }
-
-            } catch (err) {
-                console.error(err)
-            } finally {
-                setLoading(false)
-            }
-
+        async function load() {
+            const data = await getProducts()
+            const found = data.find((p: any) => p.id === params.id)
+            setProduct(found)
         }
 
-        loadProduct()
-
+        load()
     }, [])
 
-    // 💾 SAVE 
-    async function handleSave() {
-
-        if (!product) return
-
-        if (!product.name.trim()) {
-            setError("Product name is required")
-            return
-        }
-
-        if (product.price <= 0) {
-            setError("Price must be greater than 0")
-            return
-        }
-
-        try {
-
-            await updateProduct(product)
-
-            alert("Product updated successfully")
-
-            router.push("/admin/products")
-
-        } catch (err) {
-            console.error(err)
-            setError("Update failed")
-        }
-
-    }
-
-    function handleImageUpload(
-        e: React.ChangeEvent<HTMLInputElement>
-    ) {
-
+    function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
         const file = e.target.files?.[0]
         if (!file) return
 
         const reader = new FileReader()
-
         reader.onloadend = () => {
-            setProduct(prev =>
-                prev ? { ...prev, image: reader.result as string } : prev
-            )
+            setProduct({ ...product, image: reader.result })
         }
-
         reader.readAsDataURL(file)
     }
 
-    if (loading) {
-        return <p className="p-6">Loading...</p>
+    async function handleSave() {
+        await updateProduct(product)
+        router.push("/admin/products")
     }
 
-    if (!product) {
-        return <p className="p-6">Product not found</p>
-    }
+    if (!product) return <p>Loading...</p>
 
     return (
+        <div className="p-6 max-w-md mx-auto">
 
-        <div className="min-h-screen flex items-center justify-center">
+            <input
+                className="w-full border p-3 mb-3"
+                value={product.name}
+                onChange={(e) =>
+                    setProduct({ ...product, name: e.target.value })
+                }
+            />
 
-            <div className="bg-white p-8 rounded-2xl shadow-md w-full max-w-md">
+            <input
+                className="w-full border p-3 mb-3"
+                value={product.price}
+                onChange={(e) =>
+                    setProduct({ ...product, price: Number(e.target.value) })
+                }
+            />
 
-                <h1 className="text-2xl font-bold mb-6">
-                    Edit Product
-                </h1>
+            <textarea
+                className="w-full border p-3 mb-3"
+                value={product.description || ""}
+                onChange={(e) =>
+                    setProduct({ ...product, description: e.target.value })
+                }
+            />
 
-                {error && (
-                    <p className="text-red-500 mb-3">{error}</p>
-                )}
-
+            <label className="inline-block cursor-pointer mb-3">
+                <span className="bg-gray-100 px-4 py-2 border rounded">
+                    Change Image
+                </span>
                 <input
-                    className="w-full border p-3 rounded-lg mb-3"
-                    value={product.name}
-                    onChange={e =>
-                        setProduct({ ...product, name: e.target.value })
-                    }
+                    type="file"
+                    className="hidden"
+                    onChange={handleImageUpload}
                 />
+            </label>
 
-                <input
-                    className="w-full border p-3 rounded-lg mb-3"
-                    value={product.price}
-                    onChange={e =>
-                        setProduct({
-                            ...product,
-                            price: Number(e.target.value)
-                        })
-                    }
-                />
+            {product.image && (
+                <img src={product.image} className="w-24 h-24 mb-3" />
+            )}
 
-                {/* 📸 CUSTOM BUTTON */}
-                <label className="inline-block cursor-pointer mb-3">
-
-                    <span className="bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-lg border transition">
-                        Change Image
-                    </span>
-
-                    <input
-                        type="file"
-                        className="hidden"
-                        onChange={handleImageUpload}
-                    />
-
-                </label>
-
-                {product.image && (
-                    <img
-                        src={product.image}
-                        className="w-32 h-32 object-cover rounded-lg mb-4"
-                    />
-                )}
-
-                <button
-                    onClick={handleSave}
-                    className="w-full bg-black text-white py-3 rounded-lg"
-                >
-                    Save Changes
-                </button>
-
-            </div>
+            <button
+                onClick={handleSave}
+                className="w-full bg-black text-white p-3"
+            >
+                Save Changes
+            </button>
 
         </div>
-
     )
-
 }
